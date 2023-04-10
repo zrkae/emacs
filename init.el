@@ -31,6 +31,8 @@
 (electric-pair-mode 1)
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
+(global-set-key (kbd "C-c c") 'compile)
+
 ;; https://endlessparentheses.com/ansi-colors-in-the-compilation-buffer-output.html
 (require 'ansi-color)
 (defun colorize-compilation ()
@@ -120,7 +122,7 @@
     (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 (use-package vterm
-  :bind ("C-c t" . vterm)
+  :bind ("C-c C-t" . vterm)
   :config
   (setq vterm-timer-delay 0.01))
 
@@ -137,6 +139,7 @@
 (use-package consult
   :bind (("C-s" . consult-line)
          ("M-b" . consult-buffer)
+         ("M-f" . consult-find)
          ("C-c C-r" . consult-ripgrep)))
 
 ; completion style
@@ -147,6 +150,30 @@
   (completion-category-overrides '((file (styles basic partial-completion)))))
 
 ; -- lang support
+(add-hook 'c++-mode-hook
+          (lambda ()
+            (setq c-basic-offset 4
+		  c-default-style "linux")))
+
+(add-hook 'c-mode-hook
+          (lambda ()
+            (setq c-basic-offset 4)))
+
+; NASM/ASM
+; https://stackoverflow.com/questions/38672928/how-to-set-emacs-up-for-assembly-programming-and-fix-indentation
+(defun my-asm-mode-hook ()
+  (electric-indent-local-mode)
+  (setq indent-tabs-mode nil)
+
+  (defun asm-calculate-indentation ()
+  (or
+   (and (looking-at "[.@_[:word:]]+:") 0)
+   (and (looking-at "\\s<\\s<\\s<") 0)
+   (and (looking-at "%") 0)
+   (and (looking-at "c?global\\|section\\|default\\|align\\|INIT_..X") 0)
+   (or 4))))
+(add-hook 'asm-mode-hook #'my-asm-mode-hook)
+
 (use-package markdown-mode)
 
 (use-package rust-mode)
